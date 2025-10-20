@@ -53,7 +53,28 @@ inputs:
     description: 'Whether to configure the token or SSH key with the local git config'
     default: true
   path:
-    description: 'Relative path under $GITHUB_WORKSPACE to place the repository'
+    description: |
+      Relative path under $GITHUB_WORKSPACE to place the repository.
+
+      Important notes:
+      - The value is resolved against the runtime environment variable `GITHUB_WORKSPACE`.
+      - Absolute paths or paths outside of `GITHUB_WORKSPACE` are rejected. The action
+        validates that the final resolved path is located under `GITHUB_WORKSPACE`.
+      - The input value is not subject to shell or environment variable expansion by the
+        action runner. Inputs like "$GOPATH/..." or "${{ runner.workspace }}/..." will
+        not be expanded by the action. If you need environment variable expansion, use a
+        relative path (for example `./src/github.com/owner/repo`) and set environment
+        variables in subsequent `run` steps.
+
+      Example (place repository in a GOPATH-like layout under the workspace):
+
+        with:
+          path: ./src/github.com/${{ github.repository }}
+
+      Then in a later `run` step you can set GOPATH to the workspace root:
+
+        env:
+          GOPATH: ${{ github.workspace }}
   clean:
     description: 'Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching'
     default: true
